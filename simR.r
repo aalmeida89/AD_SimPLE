@@ -3,7 +3,7 @@
 #GoodNews = 0
 #FakeNews = 1
 
-set.seed(10)
+#set.seed(10)
 maxLoop <- 1000
 #qual valor vai ser inicializado no top das timeLines
 top <- 1 #Vai começar com FakeNews no top da timeline
@@ -117,7 +117,9 @@ roda_sim <- function() {
 }
 
 sim_events <- roda_sim()
-
-plot(sim_events[,4], )
+sim_events
+#site para ajudar a configurar o plot do grafico
+#https://www.datamentor.io/r-programming/plot-function/
+plot(sim_events[,5], sim_events[,4], type="l", xlab = "Tempo", ylab = "#FakeNews", col="blue")
 
 nrow(sim_events)
