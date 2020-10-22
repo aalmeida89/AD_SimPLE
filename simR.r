@@ -116,10 +116,37 @@ roda_sim <- function() {
 	#plot(eventos[,4], )
 }
 
-sim_events <- roda_sim()
-sim_events
+#inicializa um vetor vazio para inserir todos os tempos de simulação, para tirarmos a média
+sim_time <- c()
+#inicializa um vetor vazio para inserir todos os estados finais da simulação, para saber qual porcentagem de FakeNews e GoodNews do total das simulações
+sim_TL <- c()
+
+#numSim é o número de simulações que iremos realizar
+numSim <- 100
+#realiza as simulações e insere na lista sim_events
+sim_events <- replicate(numSim,roda_sim())
+
+#insere os dados de tempo de cada simulação
+for(i in 1:numSim) {
+	sim_time <- c(sim_time,(sim_events[[i]][nrow(sim_events[[i]]),5]))
+}
+#insere o estado final da time line (10 é tudo fakeNews e 0 é tudo goodNews)
+for(i in 1:numSim) {
+	sim_TL <- c(sim_TL,(sim_events[[i]][nrow(sim_events[[i]]),4]))
+}
+#média de tempo
+mean(sim_time)
+
+#Porcentagem de vezes que teve FakeNews
+sumFN <- sum(sim_TL == 10)
+sumGN <- sum(sim_TL == 0)
+sumFN/length(sim_TL)
+
+#plot do primeiro evento (tempo X #FakeNews)
+
+plot(sim_events[[1]][,5], sim_events[[1]][,4], type="l", xlab = "Tempo", ylab = "#FakeNews", col="blue")
+
+#sim_events[[1]][1,]
 #site para ajudar a configurar o plot do grafico
 #https://www.datamentor.io/r-programming/plot-function/
-plot(sim_events[,5], sim_events[,4], type="l", xlab = "Tempo", ylab = "#FakeNews", col="blue")
-
-nrow(sim_events)
+#plot(sim_events[,5], sim_events[,4], type="l", xlab = "Tempo", ylab = "#FakeNews", col="blue")
