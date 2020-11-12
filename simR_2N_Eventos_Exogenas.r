@@ -96,9 +96,9 @@ roda_sim <- function() {
 	#FakeNews = 1
 
 	#set.seed(10)
-	maxLoop <- 100
+	maxLoop <- 200
 	#qual valor vai ser inicializado no top das timeLines
-	top <- 0 #Vai começar com FakeNews no top da timeline
+	top <- 1 #Vai começar com FakeNews no top da timeline
 	#qual valor vai ser inicializado no botton das timeLines
 	botton <- 0 #Vai começar com GoodNews no booton da timeline
 	#Numero posts na timeline
@@ -202,33 +202,66 @@ roda_sim <- function() {
 	#plot(eventos[,4], )
 }
 
-#inicializa um vetor vazio para inserir todos os tempos de simulação, para tirarmos a média
-sim_time <- c()
-#inicializa um vetor vazio para inserir todos os estados finais da simulação, para saber qual porcentagem de FakeNews e GoodNews do total das simulações
-sim_TL <- c()
 
-#numSim é o número de simulações que iremos realizar
-numSim <- 100
-#realiza as simulações e insere na lista sim_events
-sim_events <- replicate(numSim,roda_sim())
+total_sim_time <- c()
+total_fk_timeline <- c()
+total_gn_timeline <- c()
 
-#Preciso fazer o seguinte, pegar todos os TotalTime que TotalFN == 10, ver como fazer isso
-#Fazer a mesma coisa para TotalFN==0
+for (i in 1:30){
+  #inicializa um vetor vazio para inserir todos os tempos de simulação, para tirarmos a média
+  sim_time <- c()
+  #inicializa um vetor vazio para inserir todos os estados finais da simulação, para saber qual porcentagem de FakeNews e GoodNews do total das simulações
+  sim_TL <- c()
+  
+  #numSim é o número de simulações que iremos realizar
+  numSim <- 100
+  #realiza as simulações e insere na lista sim_events
+  sim_events <- replicate(numSim,roda_sim())
+  
+  #Preciso fazer o seguinte, pegar todos os TotalTime que TotalFN == 10, ver como fazer isso
+  #Fazer a mesma coisa para TotalFN==0
 
-#sim_events[,,9]
-
-#Pego ultima linha da simula��o i
-
-for(i in 1:numSim) {
-  #insere os dados de tempo de cada simulacao
-  sim_TL <- c(sim_TL,(sim_events[nrow(sim_events[,,i]),4,i]))
-  #insere os dados de tempo de cada simulacao
-  sim_time <- c(sim_time,(sim_events[nrow(sim_events[,,i]),5,i]))
+  #sim_events[,,9]
+  
+  #Pego ultima linha da simula��o i
+  
+  for(i in 1:numSim) {
+    #insere os dados de tempo de cada simulacao
+    sim_TL <- c(sim_TL,(sim_events[nrow(sim_events[,,i]),4,i]))
+    #insere os dados de tempo de cada simulacao
+    sim_time <- c(sim_time,(sim_events[nrow(sim_events[,,i]),5,i]))
+  }
+  
+  #sumFN <- sum(sim_TL == 10)
+  #sumGN <- sum(sim_TL == 0)
+  
+  #media de tempo
+  total_sim_time <- c(total_sim_time,mean(sim_time))
+  total_fk_timeline <- c(total_fk_timeline, sum(sim_TL == 10)/length(sim_TL))
+  total_gn_timeline <- c(total_gn_timeline, sum(sim_TL == 0)/length(sim_TL))
+  #Porcentagem de vezes que teve FakeNews
+  
+  
+  #reseto minha lista de eventos
+  sim_events <<- NULL
 }
 
 
-#media de tempo
-mean(sim_time)
+#media com o intervalo de confianca da porcentagem de FakeNews
+mean(total_fk_timeline) - (( 1.96*sqrt(sum((total_fk_timeline-mean(total_fk_timeline))^2/(length(total_fk_timeline))))) / sqrt(length(total_fk_timeline)))
+mean(total_fk_timeline)
+mean(total_fk_timeline) + (( 1.96*sqrt(sum((total_fk_timeline-mean(total_fk_timeline))^2/(length(total_fk_timeline))))) / sqrt(length(total_fk_timeline)))
+
+#media com o intervalo de confianca do tempo para terminar a simulacao
+mean(total_sim_time) - (( 1.96*sqrt(sum((total_sim_time-mean(total_sim_time))^2/(length(total_sim_time))))) / sqrt(length(total_sim_time)))
+mean(total_sim_time)
+mean(total_sim_time) + (( 1.96*sqrt(sum((total_sim_time-mean(total_sim_time))^2/(length(total_sim_time))))) / sqrt(length(total_sim_time)))
+
+#media com o intervalo de confianca da porcentagem de GoodNews
+mean(total_gn_timeline) - (( 1.96*sqrt(sum((total_gn_timeline-mean(total_gn_timeline))^2/(length(total_gn_timeline))))) / sqrt(length(total_gn_timeline)))
+mean(total_gn_timeline)
+mean(total_gn_timeline) + (( 1.96*sqrt(sum((total_gn_timeline-mean(total_gn_timeline))^2/(length(total_gn_timeline))))) / sqrt(length(total_gn_timeline)))
+
 
 #Porcentagem de vezes que teve FakeNews
 sumFN <- sum(sim_TL == 10)
@@ -240,9 +273,10 @@ sumGN/length(sim_TL)
 
 #plot do primeiro evento (tempo X #FakeNews)
 for(i in 1:10) {
-  plot(sim_events[,5,i], sim_events[,4,i], type="l", xlab = "Tempo", ylab = "#FakeNews", col="blue")
+  plot(sim_events[,5,i], sim_events[,4,i], type="s", xlab = "Tempo", ylab = "#FakeNews", col="blue")
 }
-
+#plot(sim_events[,5,i], sim_events[,4,i], type="l")
+#plot(c(1,2,3,4), c(1,2,1,2), type="l")
 #sim_events[[1]][1,]
 #site para ajudar a configurar o plot do grafico
 #https://www.datamentor.io/r-programming/plot-function/
