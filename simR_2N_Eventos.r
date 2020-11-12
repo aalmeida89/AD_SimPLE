@@ -1,7 +1,6 @@
 
 #set.seed(1)
 #calcula o proximo evento
-#calcula o proximo evento
 calculaProxEvento <- function(tl, colname, n, k, tt) {
   
 	#inicializo uma matriz para inserir os eventos que vão ser gerados para poder pegar o proximo evento, sendo que esse evento é o com menor tempo (por falta de memoria podemos fazer assim)
@@ -152,7 +151,7 @@ sim_time <- c()
 sim_TL <- c()
 
 #numSim é o número de simulações que iremos realizar
-numSim <- 1000
+numSim <- 100
 #realiza as simulações e insere na lista sim_events
 sim_events <- replicate(numSim,roda_sim())
 
@@ -182,23 +181,23 @@ plot(sim_events[[1]][,5], sim_events[[1]][,4], type="l", xlab = "Tempo", ylab = 
 #plot(sim_events[,5], sim_events[,4], type="l", xlab = "Tempo", ylab = "#FakeNews", col="blue")
 
 
-FakeNewsTime <- matrix(c(sim_events[[1]][nrow(sim_events[[1]]),4], sim_events[[1]][nrow(sim_events[[1]]),5]), ncol = 2)
+#FakeNewsTime <- matrix(c(sim_events[[1]][nrow(sim_events[[1]]),4], sim_events[[1]][nrow(sim_events[[1]]),5]), ncol = 2)
 
-for(i in 2:numSim) {
-	FakeNewsTime <- rbind(FakeNewsTime, matrix(c(sim_events[[i]][nrow(sim_events[[i]]),4], sim_events[[i]][nrow(sim_events[[i]]),5]), ncol = 2))
-}
-FakeNewsTime <- round(FakeNewsTime, 1)
+#for(i in 2:numSim) {
+#	FakeNewsTime <- rbind(FakeNewsTime, matrix(c(sim_events[[i]][nrow(sim_events[[i]]),4], sim_events[[i]][nrow(sim_events[[i]]),5]), ncol = 2))
+#}
+#FakeNewsTime <- round(FakeNewsTime, 1)
 
-teste <- FakeNewsTime[FakeNewsTime[,1]==10,]
+#teste <- FakeNewsTime[FakeNewsTime[,1]==10,]
 
-pl <- seq(0,6,0.1)
+#pl <- seq(0,6,0.1)
 
-pl <- cbind(seq(0,20,0.1),0)
+#pl <- cbind(seq(0,20,0.1),0)
 
-for(i in 1:nrow(pl)) {
-	pl[i,2] <- sum(teste[,2]==(pl[i,1]))
-}
+#for(i in 1:nrow(pl)) {
+#	pl[i,2] <- sum(teste[,2]==(pl[i,1]))
+#}
 
-pl <- pl[pl[,2]>0,]
+#pl <- pl[pl[,2]>0,]
 
-plot(pl, type="l")
+#plot(pl, type="l")

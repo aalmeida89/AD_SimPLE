@@ -1,7 +1,6 @@
 
 #set.seed(10)
 #calcula o proximo evento
-#calcula o proximo evento
 calculaProxEvento <- function(tl, colname, n, k, tt) {
   
 	#inicializo uma matriz para inserir os eventos que vão ser gerados para poder pegar o proximo evento, sendo que esse evento é o com menor tempo (por falta de memoria podemos fazer assim)
@@ -97,9 +96,9 @@ roda_sim <- function() {
 	#FakeNews = 1
 
 	#set.seed(10)
-	maxLoop <- 50
+	maxLoop <- 100
 	#qual valor vai ser inicializado no top das timeLines
-	top <- 1 #Vai começar com FakeNews no top da timeline
+	top <- 0 #Vai começar com FakeNews no top da timeline
 	#qual valor vai ser inicializado no botton das timeLines
 	botton <- 0 #Vai começar com GoodNews no booton da timeline
 	#Numero posts na timeline
@@ -218,29 +217,31 @@ sim_events <- replicate(numSim,roda_sim())
 
 #sim_events[,,9]
 
+#Pego ultima linha da simula��o i
+
+for(i in 1:numSim) {
+  #insere os dados de tempo de cada simulacao
+  sim_TL <- c(sim_TL,(sim_events[nrow(sim_events[,,i]),4,i]))
+  #insere os dados de tempo de cada simulacao
+  sim_time <- c(sim_time,(sim_events[nrow(sim_events[,,i]),5,i]))
+}
 
 
-#insere os dados de tempo de cada simulação
-for(i in 1:numSim) {
-	sim_time <- c(sim_time,(sim_events[[i]][nrow(sim_events[[i]]),5]))
-}
-#insere o estado final da time line (10 é tudo fakeNews e 0 é tudo goodNews)
-for(i in 1:numSim) {
-	sim_TL <- c(sim_TL,(sim_events[[i]][nrow(sim_events[[i]]),4]))
-}
-#média de tempo
+#media de tempo
 mean(sim_time)
 
 #Porcentagem de vezes que teve FakeNews
 sumFN <- sum(sim_TL == 10)
 sumGN <- sum(sim_TL == 0)
+#% de FakeNews
 sumFN/length(sim_TL)
-
+#% de goodNews
 sumGN/length(sim_TL)
 
 #plot do primeiro evento (tempo X #FakeNews)
-
-plot(sim_events[[1]][,5], sim_events[[1]][,4], type="l", xlab = "Tempo", ylab = "#FakeNews", col="blue")
+for(i in 1:10) {
+  plot(sim_events[,5,i], sim_events[,4,i], type="l", xlab = "Tempo", ylab = "#FakeNews", col="blue")
+}
 
 #sim_events[[1]][1,]
 #site para ajudar a configurar o plot do grafico
