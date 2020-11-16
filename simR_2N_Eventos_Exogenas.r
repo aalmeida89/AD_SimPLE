@@ -1,5 +1,5 @@
 
-#set.seed(10)
+set.seed(1)
 #calcula o proximo evento
 calculaProxEvento <- function(tl, colname, n, k, tt) {
   
@@ -54,7 +54,7 @@ calculaProxEvento <- function(tl, colname, n, k, tt) {
 	
 	#orderna evento pela coluna "Time" em ordem crescente e adiciona esse evento no proximo evento.
 	#Esse é o primeiro evento que vai acontecer pois é o com menor tempo.
-	prox[order(prox[,ncol(prox)]),][1,]
+	prox[order(prox[,ncol(prox)-1]),][1,]
 	#return(prox)
 }
 
@@ -70,7 +70,7 @@ calculaGoodNewsExogena <- function(n, tt, colname, lambda){
 		prox[i,5] <- prox[i,6] + tt
 	}
 	
-	prox[order(prox[,ncol(prox)]),][1,]
+	prox[order(prox[,ncol(prox)-1]),][1,]
 }
 
 calculaFakeNewsExogena <- function(n, tt, colname, lambda){
@@ -81,49 +81,60 @@ calculaFakeNewsExogena <- function(n, tt, colname, lambda){
 		prox[i,1] <- 0 #TlSource #0 para chegadas exogenas
 		prox[i,2] <- i #TlDestination
 		prox[i,3] <- 1 #FakeNews
-		prox[i,6] <- rexp(1,lambda) + tt #Time #tempo exponencial usando função do próprio R.
+		prox[i,6] <- rexp(1,lambda) + tt#Time #tempo exponencial usando função do próprio R.
 		prox[i,5] <- prox[i,6] + tt
 	}
-	prox[order(prox[,ncol(prox)]),][1,]
+	prox[order(prox[,ncol(prox)-1]),][1,]
 }
 
 
-#################################
-roda_sim <- function() {
 
+#################################
+roda_sim <- function(maxLoop_v, top_v, botton_v, K_v, N_v, lambda0_v, lambda1_v, round_v, isRandom) {
+  if(missing(isRandom)) {
+    isRandom <- 0
+  }
 	#Cria timeLine com os valores "F" = 1,"G" = 0, podemos modificar do jeito que quisermos
 	#GoodNews = 0
 	#FakeNews = 1
 
 	#set.seed(10)
-	maxLoop <- 200
+	maxLoop <- maxLoop_v
 	#qual valor vai ser inicializado no top das timeLines
-	top <- 1 #Vai começar com FakeNews no top da timeline
+	top <- top_v #Vai começar com FakeNews no top da timeline
 	#qual valor vai ser inicializado no botton das timeLines
-	botton <- 0 #Vai começar com GoodNews no booton da timeline
+	botton <- botton_v #Vai começar com GoodNews no booton da timeline
 	#Numero posts na timeline
-	K <- 2 #Minha timeline tem 2 posts só
+	K <- K_v #Minha timeline tem 2 posts só
 	#Numero de usuarios
-	N <- 5 #5 usuários
+	N <- N_v #5 usuários
 	#lambidas
-	lambda0 <- 0.1 #Lambda do goodNews
-	lambda1 <- 0.2 #Lambda do FakeNews
+	lambda0 <- lambda0_v #Lambda do goodNews
+	lambda1 <- lambda1_v #Lambda do FakeNews
 
+	rodada <- round_v
 	#nome das colunas do evento, uso para calcular tambem o tamanho da matriz. Esse objeto é apenas um vetor com os nomes das colunas para poder reaproveitar na hora de criar as matrizes
 	#evento vai ter: [TlSource, TlDestination, Type, TotalFN, Time] #Tempo precisa ser sempre o ultimo elemento da lista para nao dar problema na function calculaProxEvento
 	#TlSource = Quem está enviando o post
-	#TlSource = Quem está recebendo o post
+	#TlDestination = Quem está recebendo o post
 	#Type = Se é FakeNews(1) ou GoodNews(0)
 	#TotalFN = Total de fakeNews no instante Time
 	#Time = tempo que chegou o próximo post na timeline, aqui o tempo não é o total, é relativo, ou seja, é o espaço de tempo entre o ultimo post e a hora desse post
-	colname <- c("TlSource", "TlDestination", "Type", "TotalFN", "TotalTime", "RelativeTime")
+	colname <- c("TlSource", "TlDestination", "Type", "TotalFN", "TotalTime", "RelativeTime", "Round")
 
 	#Timeline é criada da seguinte forma: [top, 0, 0, ..., 0, 0, booton] para cada linha, ou seja, se top = 1 e botton = 1, teremos todas as linhas como [1,0,...,0,1], timeline começa com fakenews e termina com fakenews
-	timeLine <- matrix(rep(c(top, rep(0,K-2), botton),N), nrow = N, byrow = T)
-	colnames(timeLine) <- c("Top", rep("middle", K-2), "Botton")
+	if (isRandom == 1) {
+	  timeLine <- matrix(sample(0:1,N*K, replace = TRUE), nrow = N, byrow = T)
+	  colnames(timeLine) <- c("Top", rep("middle", K-2), "Botton")
+	}
+	else {
+	  timeLine <- matrix(rep(c(top, rep(0,K-2), botton),N), nrow = N, byrow = T)
+	  colnames(timeLine) <- c("Top", rep("middle", K-2), "Botton")		
+	}
+	  
 
 	#crio minha matriz de eventos
-	eventos <- matrix(rep(0,length(colname)), ncol = length(colname))
+	eventos <- matrix(c(rep(0,length(colname)-1),rodada), ncol = length(colname))
 	eventos[4] <- Reduce(`+`, (colSums(timeLine)))
 	colnames(eventos) <- colname
 
@@ -169,19 +180,20 @@ roda_sim <- function() {
 		
 	
 		#faço a rotação da timeLine, ou seja, o top recebe o próximo post que pode ser FN ou GN e os outros posts da timeline "descem".
-		for(i in K:2){
-			timeLine[prox_evento[2], i] <- timeLine[prox_evento[2], i-1] #top vai pra botton
-		}
-		timeLine[prox_evento[2], 1] <- prox_evento[3] #evento entra no top da timeline
+		#for(i in K:2){
+		#	timeLine[prox_evento[2], i] <- timeLine[prox_evento[2], i-1] #top vai pra botton
+		#}
+		#timeLine[prox_evento[2], 1] <- prox_evento[3] #evento entra no top da timeline
 		
 		######################################################################
 		## RDN Case, mas validar probabilidade se eh linearmente distribuido ##
 		######################################################################
 		#para RDN podemos escolher aleatoriamente onde a mensagem vai entrar, entao basicamente vamos soh substituir um post aleatoriamente
-		#timeLine[prox_evento[2], sample(1:K,1)] <- prox_evento[3] #top vai pra botton
+		timeLine[prox_evento[2], sample(1:K,1)] <- prox_evento[3] 
 		
 		#calcula quantas FakeNews tem no total e adiciono na coluna correta
 		prox_evento[4] <- Reduce(`+`, (colSums(timeLine)))
+		prox_evento[7] <- rodada
 		#adiciona tempo total ate o momento
 		#prox_evento[5] <- colSums(eventos)[6]+prox_evento[6]
 		totalTime <- prox_evento[5]
@@ -202,7 +214,6 @@ roda_sim <- function() {
 	#plot(eventos[,4], )
 }
 
-
 total_sim_time <- c()
 total_fk_timeline <- c()
 total_gn_timeline <- c()
@@ -213,10 +224,12 @@ for (i in 1:30){
   #inicializa um vetor vazio para inserir todos os estados finais da simulação, para saber qual porcentagem de FakeNews e GoodNews do total das simulações
   sim_TL <- c()
   
+  FK_TL <- c()
+  
   #numSim é o número de simulações que iremos realizar
   numSim <- 100
   #realiza as simulações e insere na lista sim_events
-  sim_events <- replicate(numSim,roda_sim())
+  sim_events <- replicate(numSim,roda_sim(150, 0, 0, 2, 5, 0.1, 0.2, i))
   
   #Preciso fazer o seguinte, pegar todos os TotalTime que TotalFN == 10, ver como fazer isso
   #Fazer a mesma coisa para TotalFN==0
@@ -228,8 +241,14 @@ for (i in 1:30){
   for(i in 1:numSim) {
     #insere os dados de tempo de cada simulacao
     sim_TL <- c(sim_TL,(sim_events[nrow(sim_events[,,i]),4,i]))
+    
+    #FK_TL <- c(FK_TL, sum(c(sim_events[,4,i])==10)/length(c(sim_events[,4,i])))
+    
+    #GN_TL <- c(GN_TL, sum(c(sim_events[,4,i])==0)/length(c(sim_events[,4,i])))
     #insere os dados de tempo de cada simulacao
     sim_time <- c(sim_time,(sim_events[nrow(sim_events[,,i]),5,i]))
+    
+    #write.table(sim_events[,,1], file = "D:\\Alexandre\\Alexandre\\UFRJ\\AD\\202001\\Simula��o\\Exogena_RND_TOP1_BOT1.csv", sep = ",", append = TRUE, quote = FALSE,col.names = FALSE, row.names = FALSE)
   }
   
   #sumFN <- sum(sim_TL == 10)
@@ -241,6 +260,8 @@ for (i in 1:30){
   total_gn_timeline <- c(total_gn_timeline, sum(sim_TL == 0)/length(sim_TL))
   #Porcentagem de vezes que teve FakeNews
   
+  #adiciona as rodadas atuais na minha lista total de eventos
+  #sim_full_list <- c(sim_full_list, sim_events)
   
   #reseto minha lista de eventos
   sim_events <<- NULL
@@ -263,18 +284,6 @@ mean(total_gn_timeline)
 mean(total_gn_timeline) + (( 1.96*sqrt(sum((total_gn_timeline-mean(total_gn_timeline))^2/(length(total_gn_timeline))))) / sqrt(length(total_gn_timeline)))
 
 
-#Porcentagem de vezes que teve FakeNews
-sumFN <- sum(sim_TL == 10)
-sumGN <- sum(sim_TL == 0)
-#% de FakeNews
-sumFN/length(sim_TL)
-#% de goodNews
-sumGN/length(sim_TL)
-
-#plot do primeiro evento (tempo X #FakeNews)
-for(i in 1:10) {
-  plot(sim_events[,5,i], sim_events[,4,i], type="s", xlab = "Tempo", ylab = "#FakeNews", col="blue")
-}
 #plot(sim_events[,5,i], sim_events[,4,i], type="l")
 #plot(c(1,2,3,4), c(1,2,1,2), type="l")
 #sim_events[[1]][1,]
